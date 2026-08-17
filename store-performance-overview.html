@@ -439,7 +439,7 @@
   }
   .rank-badge.top { background: #EAF2FC; color: #4C83C8; }
 
-  .store-cell { text-align: left !important; }
+  table.rank-table td.store-cell { text-align: left; }
   .store-name { font-weight: 600; color: #303A4A; }
   td.dim { color: var(--t-sub); }
   td.num { color: var(--t-module); }
@@ -631,7 +631,7 @@
   #view-detail .asset-list tbody tr.sum-row td:first-child { text-align: left; }
   #view-detail .asset-list tbody tr.sum-row td:last-child  { text-align: right; }
 
-  /* 03 右侧底部：资产覆盖进度条（紧跟上方汇总卡，不留大块空白） */
+  /* 03 右侧底部：投资款损益汇总卡 */
   #view-detail .goal-block {
     padding: 12px 14px;
     background: linear-gradient(180deg, #F8FBFE, #EFF5FC);
@@ -642,16 +642,7 @@
     flex-direction: column;
     justify-content: center;
   }
-  #view-detail .goal-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 7px; }
-  #view-detail .goal-num { font-size: 16px; font-weight: 600; color: var(--t-title); font-variant-numeric: tabular-nums; }
-  #view-detail .goal-pct { font-size: 12.5px; color: var(--t-sub); font-weight: 500; }
-  #view-detail .goal-bar { height: 8px; border-radius: 999px; background: rgba(91, 145, 217, 0.16); overflow: hidden; }
-  #view-detail .goal-bar .fill {
-    height: 100%; border-radius: 999px;
-    background: linear-gradient(90deg, #7FABDF, #5B91D9);
-    transition: width 0.5s ease;
-  }
-  #view-detail .goal-foot { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--t-weak); }
+
   #view-detail .goal-block .sc-label { font-size: 12px; font-weight: 500; color: var(--t-sub); }
   #view-detail .goal-block .sc-value { margin-top: 4px; font-size: 20px; font-weight: 600; color: var(--t-title); font-variant-numeric: tabular-nums; letter-spacing: -0.2px; line-height: 1.2; }
   #view-detail .goal-block .sc-value.pos { color: var(--green); }
