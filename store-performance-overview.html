@@ -226,6 +226,11 @@
     letter-spacing: -0.1px;
   }
   .section-head p { margin-top: 2px; font-size: 13px; color: var(--t-sub); }
+  .block-title {
+    font-size: 14px; font-weight: 600; color: var(--t-module);
+    margin: 14px 0 8px;
+    letter-spacing: -0.1px;
+  }
 
   .card {
     background: var(--card);
@@ -565,7 +570,6 @@
   #view-detail .side-card .sc-value.neg { color: var(--red); }
   #view-detail .side-card-strong { border-color: rgba(91, 145, 217, 0.4); background: linear-gradient(180deg, #F8FBFE, #EFF5FC); }
   #view-detail .side-card-strong .sc-value { color: var(--blue-hover); font-size: 22px; }
-  #view-detail .side-grid-2 { display: flex; flex-direction: column; gap: 10px; flex: 1; }
 
   /* 供应链表内余额小条 */
   #view-detail .sc-bal { position: relative; display: inline-block; width: 104px; text-align: right; padding-bottom: 4px; }
@@ -583,7 +587,7 @@
     font-size: 13.5px;
   }
   #view-detail .asset-list td {
-    padding: 9px 2px;
+    padding: 9px 10px;
     border-bottom: 1px solid var(--grid-line);
     vertical-align: middle;
   }
@@ -599,8 +603,8 @@
     font-size: 11.5px;
     font-weight: 500;
   }
-  #view-detail .asset-list .a-cat.cat-cash span { background: #EAF2FC; color: #4C83C8; }
-  #view-detail .asset-list .a-cat.cat-deposit span { background: #F6EFE4; color: #7A5B33; }
+  #view-detail .asset-list .a-cat.cat-cash span,
+  #view-detail .asset-list .a-cat.cat-deposit span { color: var(--t-body); }
   #view-detail .asset-list .a-name { color: var(--t-body); }
   #view-detail .asset-list .a-amount {
     text-align: right;
@@ -608,23 +612,35 @@
     font-weight: 500;
     font-variant-numeric: tabular-nums;
   }
-  #view-detail .asset-total {
-    margin-top: 12px;
-    background: var(--blue-bg);
-    border: 1px solid var(--blue-border);
-    border-radius: 6px;
-    padding: 10px 14px;
-    display: flex; align-items: center; justify-content: space-between;
+  #view-detail .asset-list thead th {
+    text-align: center;
+    font-size: 12px; font-weight: 500; color: var(--t-sub);
+    background: #F7F9FC;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
   }
-  #view-detail .asset-total .t-label { font-size: 12.5px; font-weight: 500; color: var(--t-body); }
-  #view-detail .asset-total .t-amount { font-size: 18px; font-weight: 600; color: var(--t-title); font-variant-numeric: tabular-nums; }
+  #view-detail .asset-list thead th:nth-child(2) { text-align: left; }
+  #view-detail .asset-list thead th:nth-child(3) { text-align: right; }
+  #view-detail .asset-list tbody tr.sum-row td {
+    background: var(--sum-bg);
+    font-weight: 600;
+    color: var(--t-module);
+    border-top: 1px solid var(--border);
+  }
+  #view-detail .asset-list tbody tr.sum-row td:first-child { text-align: left; }
+  #view-detail .asset-list tbody tr.sum-row td:last-child  { text-align: right; }
 
   /* 03 右侧底部：资产覆盖进度条（紧跟上方汇总卡，不留大块空白） */
   #view-detail .goal-block {
-    margin-top: 0; padding: 12px 14px;
+    padding: 12px 14px;
     background: linear-gradient(180deg, #F8FBFE, #EFF5FC);
     border: 1px solid rgba(91, 145, 217, 0.4);
     border-radius: 8px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   #view-detail .goal-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 7px; }
   #view-detail .goal-num { font-size: 16px; font-weight: 600; color: var(--t-title); font-variant-numeric: tabular-nums; }
@@ -636,6 +652,10 @@
     transition: width 0.5s ease;
   }
   #view-detail .goal-foot { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--t-weak); }
+  #view-detail .goal-block .sc-label { font-size: 12px; font-weight: 500; color: var(--t-sub); }
+  #view-detail .goal-block .sc-value { margin-top: 4px; font-size: 20px; font-weight: 600; color: var(--t-title); font-variant-numeric: tabular-nums; letter-spacing: -0.2px; line-height: 1.2; }
+  #view-detail .goal-block .sc-value.pos { color: var(--green); }
+  #view-detail .goal-block .sc-value.neg { color: var(--red); }
 
   /* ============ 经营概览辅助指标（第二排，紧凑辅助，主次低于 KPI） ============ */
   #view-detail .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
@@ -660,7 +680,6 @@
   }
   @media (max-width: 1280px) {
     .type-grid { grid-template-columns: repeat(3, 1fr); }
-    #view-detail .metric-grid { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 1180px) {
     #view-detail .kpi-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -681,6 +700,7 @@
   }
   @media (max-width: 960px) {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    #view-detail .metric-grid { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 640px) {
     .kpi-grid, .type-grid { grid-template-columns: 1fr; }
@@ -863,6 +883,7 @@
       <div class="section-head">
         <h2>经营概览</h2>
       </div>
+      <h3 class="block-title">本月核心数据</h3>
       <div class="kpi-grid">
         <div class="kpi-card"><div class="kpi-label">本月业绩</div><div class="kpi-value" id="kpiRevenue">–</div><div class="kpi-delta" id="kpiRevenueD"></div></div>
         <div class="kpi-card"><div class="kpi-label">本月订单数</div><div class="kpi-value" id="kpiOrders">–</div><div class="kpi-delta" id="kpiOrdersD"></div></div>
@@ -871,6 +892,7 @@
         <div class="kpi-card"><div class="kpi-label">客单价</div><div class="kpi-value" id="kpiAov">–</div><div class="kpi-delta" id="kpiAovD"></div></div>
         <div class="kpi-card"><div class="kpi-label">广告 ROI</div><div class="kpi-value" id="kpiRoi">–</div><div class="kpi-delta" id="kpiRoiD"></div></div>
       </div>
+      <h3 class="block-title">立项至今费比</h3>
       <div class="metric-grid">
         <div class="metric-card">
           <div class="m-label">广告费占比</div>
@@ -914,11 +936,12 @@
             <thead>
               <tr>
                 <th>月份</th>
-                <th>订单数</th>
-                <th>询盘量</th>
                 <th>业绩</th>
-                <th>客单价</th>
+                <th>广告费</th>
                 <th>ROI</th>
+                <th>询盘量</th>
+                <th>订单数</th>
+                <th>客单价</th>
               </tr>
             </thead>
             <tbody id="tbMonthly"></tbody>
@@ -982,37 +1005,20 @@
             <h3>现金类资产</h3>
             <p class="chart-sub">可支配现金 / 预存款余额</p>
             <table class="asset-list" id="assetList"></table>
-            <div class="asset-total">
-              <span class="t-label">现金类资产合计</span>
-              <span class="t-amount" id="assetTotal">–</span>
-            </div>
           </div>
         </div>
         <div class="lr-side">
-          <div class="side-grid-2">
-            <div class="side-card">
-              <span class="sc-label">累计投资额</span>
-              <span class="sc-value" id="invTotal">–</span>
-            </div>
-            <div class="side-card">
-              <span class="sc-label">累计利润分红</span>
-              <span class="sc-value" id="invDividend">–</span>
-            </div>
-            <div class="side-card">
-              <span class="sc-label">投资款损益</span>
-              <span class="sc-value" id="invPnl">–</span>
-            </div>
+          <div class="side-card">
+            <span class="sc-label">累计投资额</span>
+            <span class="sc-value" id="invTotal">–</span>
+          </div>
+          <div class="side-card">
+            <span class="sc-label">累计利润分红</span>
+            <span class="sc-value" id="invDividend">–</span>
           </div>
           <div class="goal-block">
-            <div class="goal-head">
-              <span class="goal-num" id="goalNum">–</span>
-              <span class="goal-pct" id="goalPct">–</span>
-            </div>
-            <div class="goal-bar"><div class="fill" id="goalFill" style="width:0%"></div></div>
-            <div class="goal-foot">
-              <span id="goalCoverLabel">当前资产 + 已分红</span>
-              <span id="goalTotalLabel">累计投资 –</span>
-            </div>
+            <span class="sc-label">投资款损益</span>
+            <span class="sc-value" id="invPnl">–</span>
           </div>
         </div>
       </div>
@@ -1954,11 +1960,12 @@ $('searchInput').addEventListener('input', function (e) {
     $d('tbMonthly').innerHTML = pm.map(function (m) {
       return '<tr>' +
         '<td>' + m.month + '</td>' +
-        '<td>' + fmtNum(m.orders) + '</td>' +
-        '<td>' + fmtNum(m.inquiries) + '</td>' +
         '<td>' + fmtMoney(m.revenue) + '</td>' +
-        '<td>' + fmtMoney(Math.round(m.revenue / m.orders)) + '</td>' +
+        '<td>' + fmtMoney(m.adSpend) + '</td>' +
         '<td>' + m.roi.toFixed(2) + '</td>' +
+        '<td>' + fmtNum(m.inquiries) + '</td>' +
+        '<td>' + fmtNum(m.orders) + '</td>' +
+        '<td>' + fmtMoney(Math.round(m.revenue / m.orders)) + '</td>' +
       '</tr>';
     }).join('');
 
@@ -1995,11 +2002,16 @@ $('searchInput').addEventListener('input', function (e) {
                '</tr>';
       }).join('');
     }
-    $d('assetList').innerHTML = '<tbody>' +
-      renderAssetGroup(d.cashAssets.slice(0, 3), '可支配现金', 'cat-cash') +
-      renderAssetGroup(d.cashAssets.slice(3, 6), '预存款余额', 'cat-deposit') +
-    '</tbody>';
-    $d('assetTotal').textContent = fmtMoney(cashTotal);
+    $d('assetList').innerHTML =
+      '<thead><tr><th>类型</th><th>账户名称</th><th>金额</th></tr></thead>' +
+      '<tbody>' +
+        '<tr class="sum-row">' +
+          '<td colspan="2">汇总</td>' +
+          '<td class="a-amount">' + fmtMoney(cashTotal) + '</td>' +
+        '</tr>' +
+        renderAssetGroup(d.cashAssets.slice(0, 3), '可支配现金', 'cat-cash') +
+        renderAssetGroup(d.cashAssets.slice(3, 6), '预存款余额', 'cat-deposit') +
+      '</tbody>';
 
     /* ---- 投资回报 ---- */
     const inv = d.investment;
@@ -2008,13 +2020,6 @@ $('searchInput').addEventListener('input', function (e) {
     $d('invDividend').textContent = fmtMoney(inv.totalDividend);
     $d('invPnl').textContent = (pnl >= 0 ? '' : '-') + fmtMoney(Math.abs(pnl));
     $d('invPnl').className = 'sc-value' + (pnl < 0 ? ' neg' : ' pos');
-
-    const covered = cashTotal + inv.totalDividend;
-    const ratio = Math.min(100, covered / inv.totalInvestment * 100);
-    $d('goalNum').textContent = fmtNum(covered);
-    $d('goalPct').textContent = ratio.toFixed(1) + '%';
-    $d('goalFill').style.width = ratio.toFixed(1) + '%';
-    $d('goalTotalLabel').textContent = '累计投资 ' + fmtNum(inv.totalInvestment);
 
     /* ---- 收支成本 ---- */
     const cf = d.cashflowMonthly;
@@ -2121,3 +2126,4 @@ initYearChart();
 </script>
 </body>
 </html>
+
