@@ -1,0 +1,2431 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="资金总览；供应链与 ISV 页面使用示例数据。" />
+    <link rel="icon" href="data:," />
+    <title>现金流量表｜ISV · 资金总览</title>
+    <style>
+      :root {
+        --bg: #f7f9fc;
+        --card: #ffffff;
+        --border: #e5eaf0;
+        --border-deep: #d5dce6;
+        --blue: #5b91d9;
+        --blue-hover: #4c83c8;
+        --blue-bg: #eef5fc;
+        --blue-border: #d9e7f5;
+        --green: #8fbb58;
+        --red: #d96b66;
+        --purple: #7777ae;
+        --orange: #e9a25f;
+        --t-title: #202733;
+        --t-module: #303a4a;
+        --t-body: #465164;
+        --t-sub: #7c8799;
+        --t-weak: #9ba5b4;
+        --grid-line: #eef1f5;
+        --sum-bg: #f2f6fb;
+        --hover-bg: #f5f9fe;
+        --radius: 8px;
+        --shadow: 0 1px 3px rgba(20, 35, 60, 0.04);
+        --shadow-drop: 0 4px 16px rgba(20, 35, 60, 0.08);
+        --sidebar-width: 212px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        color-scheme: light;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizelegibility;
+      }
+
+      body {
+        min-width: 320px;
+        color: var(--t-body);
+        background: var(--bg);
+        font-family:
+          Inter,
+          'PingFang SC',
+          'Microsoft YaHei',
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button:focus-visible,
+      a:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(91, 145, 217, 0.14);
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .skip-link {
+        position: fixed;
+        z-index: 400;
+        top: 10px;
+        left: 10px;
+        padding: 8px 12px;
+        color: var(--t-title);
+        text-decoration: none;
+        background: var(--card);
+        border: 1px solid var(--blue);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-drop);
+        transform: translateY(-170%);
+        transition: transform 0.15s ease;
+      }
+
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
+      .app-shell {
+        min-height: 100vh;
+      }
+
+      .container {
+        width: 100%;
+        padding-right: 24px;
+        padding-left: 28px;
+      }
+
+      .sidebar {
+        position: fixed;
+        z-index: 120;
+        inset: 0 auto 0 0;
+        display: flex;
+        width: var(--sidebar-width);
+        flex-direction: column;
+        background: var(--card);
+        border-right: 1px solid var(--border);
+      }
+
+      .side-brand {
+        display: flex;
+        height: 64px;
+        flex-shrink: 0;
+        gap: 10px;
+        align-items: center;
+        padding: 0 20px;
+        color: var(--t-title);
+        font-size: 16px;
+        font-weight: 600;
+        border-bottom: 1px solid var(--grid-line);
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 26px;
+        height: 26px;
+        flex-shrink: 0;
+        color: #fff;
+        background: linear-gradient(135deg, #7fabdf, var(--blue));
+        border-radius: 7px;
+        box-shadow: 0 1px 3px rgba(76, 131, 200, 0.28);
+        place-items: center;
+      }
+
+      .brand-mark svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .side-nav {
+        flex: 1;
+        padding: 10px 12px 16px;
+        overflow-y: auto;
+      }
+
+      .nav-item {
+        position: relative;
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        margin: 2px 0;
+        padding: 7px 10px;
+        color: var(--t-body);
+        font-size: 13px;
+        text-decoration: none;
+        white-space: nowrap;
+        border-radius: 6px;
+        transition:
+          color 0.12s ease,
+          background 0.12s ease;
+      }
+
+      .nav-item svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        color: var(--t-sub);
+      }
+
+      .nav-item:hover {
+        background: var(--hover-bg);
+      }
+
+      .nav-item[aria-disabled='true'] {
+        cursor: default;
+      }
+
+      .nav-item.active {
+        color: var(--blue-hover);
+        font-weight: 500;
+        background: var(--blue-bg);
+      }
+
+      .nav-item.active svg {
+        color: var(--blue-hover);
+      }
+
+      .nav-item.active::before {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 3px;
+        height: 15px;
+        background: var(--blue-hover);
+        border-radius: 0 2px 2px 0;
+        content: '';
+        transform: translateY(-50%);
+      }
+
+      .app-main {
+        min-width: 0;
+        margin-left: var(--sidebar-width);
+      }
+
+      .page-header {
+        position: sticky;
+        z-index: 90;
+        top: 0;
+        background: rgba(255, 255, 255, 0.98);
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 2px 8px rgba(20, 35, 60, 0.04);
+      }
+
+      .header-row {
+        display: flex;
+        min-height: 48px;
+        gap: 18px;
+        align-items: stretch;
+        justify-content: space-between;
+      }
+
+      .tabs-wrap {
+        display: flex;
+        min-width: 0;
+        align-items: stretch;
+      }
+
+      .tabs-list {
+        display: flex;
+        min-width: 0;
+        gap: 26px;
+        align-items: stretch;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .tabs-list::-webkit-scrollbar {
+        display: none;
+      }
+
+      .tab-item {
+        position: relative;
+        flex: 0 0 auto;
+        padding: 0;
+        color: var(--t-sub);
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        transition: color 0.12s ease;
+      }
+
+      .tab-item:hover {
+        color: var(--blue-hover);
+      }
+
+      .tab-item[aria-selected='true'] {
+        color: var(--t-title);
+        font-weight: 600;
+      }
+
+      .tab-item[aria-selected='true']::after {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 2px;
+        background: var(--blue);
+        content: '';
+      }
+
+      .header-meta {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 12px;
+        align-items: center;
+        color: var(--t-sub);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .status-chip {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+        padding: 3px 8px;
+        color: var(--blue-hover);
+        background: var(--blue-bg);
+        border: 1px solid var(--blue-border);
+        border-radius: 999px;
+        font-size: 11.5px;
+        font-weight: 500;
+      }
+
+      .status-chip::before {
+        width: 6px;
+        height: 6px;
+        background: currentcolor;
+        border-radius: 50%;
+        content: '';
+      }
+
+      .mobile-menu-button,
+      .sidebar-scrim {
+        display: none;
+      }
+
+      .page-content {
+        padding-top: 20px;
+        padding-bottom: 32px;
+      }
+
+      .page-view {
+        min-width: 0;
+      }
+
+      .report-root {
+        container-type: inline-size;
+      }
+
+      .report-head {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+
+      .report-title-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .report-head h1 {
+        color: var(--t-title);
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+      }
+
+      .report-head p {
+        max-width: 760px;
+        margin-top: 4px;
+        color: var(--t-sub);
+        font-size: 13px;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .chart-card,
+      .quarter-card,
+      .category-card,
+      .table-card {
+        transition:
+          border-color 0.12s ease,
+          box-shadow 0.12s ease;
+      }
+
+      .chart-card:hover,
+      .quarter-card:hover,
+      .category-card:hover,
+      .table-card:hover {
+        border-color: var(--border-deep);
+        box-shadow: 0 2px 6px rgba(20, 35, 60, 0.06);
+      }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .kpi-card {
+        min-height: 94px;
+        padding: 13px 16px;
+        transition:
+          border-color 0.12s ease,
+          box-shadow 0.12s ease;
+      }
+
+      .kpi-card:hover {
+        border-color: var(--border-deep);
+        box-shadow: 0 2px 6px rgba(20, 35, 60, 0.06);
+      }
+
+      .kpi-label {
+        color: var(--t-sub);
+        font-size: 12.5px;
+        font-weight: 500;
+      }
+
+      .kpi-value {
+        margin-top: 7px;
+        color: var(--t-title);
+        font-size: 26px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.4px;
+        line-height: 1.15;
+      }
+
+      .kpi-value.is-negative,
+      .number.is-negative {
+        color: var(--red);
+      }
+
+      .kpi-value.is-positive {
+        color: var(--blue-hover);
+      }
+
+      .section-block {
+        margin-top: 20px;
+      }
+
+      .report-root > .section-block:first-child {
+        margin-top: 0;
+      }
+
+      .section-head {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .section-head h2 {
+        color: var(--t-module);
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .section-head p {
+        margin-top: 2px;
+        color: var(--t-sub);
+        font-size: 12.5px;
+      }
+
+      .secondary-button {
+        display: inline-flex;
+        flex: 0 0 auto;
+        gap: 6px;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 6px 11px;
+        color: var(--t-body);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        cursor: pointer;
+        transition:
+          color 0.12s ease,
+          border-color 0.12s ease,
+          background 0.12s ease;
+      }
+
+      .secondary-button:hover {
+        color: var(--blue-hover);
+        background: var(--hover-bg);
+        border-color: var(--blue-border);
+      }
+
+      .secondary-button svg {
+        width: 14px;
+        height: 14px;
+        transition: transform 0.15s ease;
+      }
+
+      .secondary-button[aria-expanded='true'] svg {
+        transform: rotate(180deg);
+      }
+
+      .overview-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(240px, 0.72fr);
+        gap: 14px;
+      }
+
+      .chart-card,
+      .quarter-card,
+      .category-card {
+        padding: 14px 16px;
+      }
+
+      .card-head {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        justify-content: space-between;
+      }
+
+      .card-head h3 {
+        color: var(--t-module);
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .card-head p {
+        margin-top: 2px;
+        color: var(--t-weak);
+        font-size: 11.5px;
+      }
+
+      .legend {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        color: var(--t-sub);
+        font-size: 11.5px;
+      }
+
+      .legend-item {
+        display: inline-flex;
+        gap: 5px;
+        align-items: center;
+      }
+
+      .legend-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+      }
+
+      .legend-dot.positive {
+        background: var(--green);
+      }
+
+      .legend-dot.negative {
+        background: var(--red);
+      }
+
+      .net-chart {
+        width: 100%;
+        height: 232px;
+        margin-top: 10px;
+      }
+
+      .chart-fallback {
+        display: grid;
+        min-height: 232px;
+        margin-top: 10px;
+        padding: 20px;
+        color: var(--t-sub);
+        background: var(--bg);
+        border: 1px dashed var(--border-deep);
+        border-radius: 7px;
+        font-size: 12.5px;
+        text-align: center;
+        place-items: center;
+      }
+
+      .quarter-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .quarter-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 48px;
+        padding: 8px 10px;
+        background: var(--bg);
+        border: 1px solid var(--grid-line);
+        border-radius: 7px;
+        transition:
+          background 0.12s ease,
+          border-color 0.12s ease,
+          box-shadow 0.12s ease;
+      }
+
+      .quarter-row:hover {
+        background: var(--hover-bg);
+        border-color: var(--blue-border);
+      }
+
+      .quarter-name {
+        color: var(--t-sub);
+        font-size: 12px;
+      }
+
+      .quarter-months {
+        display: block;
+        margin-top: 1px;
+        color: var(--t-weak);
+        font-size: 10.5px;
+      }
+
+      .quarter-value {
+        color: var(--t-module);
+        font-size: 17px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .quarter-value.is-negative {
+        color: var(--red);
+      }
+
+      .category-grid {
+        --category-columns: var(--category-total);
+
+        display: grid;
+        grid-template-columns: repeat(var(--category-columns), minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .category-card {
+        display: grid;
+        gap: 9px;
+        padding: 12px 14px;
+      }
+
+      .category-name {
+        min-width: 0;
+        color: var(--t-sub);
+        font-size: 12.5px;
+        font-weight: 500;
+        line-height: 1.4;
+      }
+
+      .category-value {
+        color: var(--t-module);
+        font-size: 18px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.2;
+      }
+
+      .category-value.is-negative {
+        color: var(--red);
+      }
+
+      .table-card {
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .table-card-head {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 13px 16px 10px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .table-card-head h3 {
+        color: var(--t-module);
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .table-card-head p {
+        margin-top: 2px;
+        color: var(--t-weak);
+        font-size: 11.5px;
+      }
+
+      .table-scroll {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .monthly-table,
+      .subject-table {
+        min-width: 1040px;
+      }
+
+      .monthly-table-card .table-card-head {
+        padding: 11px 16px 8px;
+      }
+
+      .monthly-table th,
+      .monthly-table td {
+        padding-top: 6px;
+        padding-bottom: 6px;
+      }
+
+      th {
+        padding: 8px 10px;
+        color: var(--t-sub);
+        font-size: 11.5px;
+        font-weight: 500;
+        text-align: right;
+        white-space: nowrap;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+      }
+
+      th:first-child,
+      td:first-child {
+        text-align: left;
+      }
+
+      td {
+        padding: 8px 10px;
+        color: var(--t-body);
+        font-size: 12.5px;
+        text-align: right;
+        white-space: nowrap;
+        border-bottom: 1px solid var(--grid-line);
+      }
+
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      tbody tr:hover td {
+        background: var(--hover-bg);
+      }
+
+      .monthly-table th:first-child,
+      .monthly-table td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        min-width: 104px;
+        color: var(--t-module);
+        font-weight: 500;
+        background: var(--card);
+      }
+
+      .monthly-table th:first-child {
+        z-index: 3;
+        background: var(--bg);
+      }
+
+      .monthly-table .net-row td {
+        color: var(--t-module);
+        font-weight: 600;
+        background: var(--sum-bg);
+        border-top: 1px solid var(--border);
+      }
+
+      .monthly-table .net-row td.is-negative {
+        color: var(--red);
+      }
+
+      .current-period {
+        color: var(--blue-hover) !important;
+        background: #f7fbff !important;
+      }
+
+      .subject-table th:first-child,
+      .subject-table td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        width: 210px;
+        min-width: 210px;
+        max-width: 210px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        background: var(--card);
+      }
+
+      .subject-table th:first-child {
+        z-index: 3;
+        background: var(--bg);
+      }
+
+      .subject-table .group-row td {
+        color: var(--t-module);
+        font-weight: 600;
+        background: var(--sum-bg);
+        border-top: 1px solid var(--border);
+      }
+
+      .subject-table .group-row td:first-child {
+        background: var(--sum-bg);
+      }
+
+      .subject-table .detail-row td:first-child {
+        padding-left: 24px;
+        color: var(--t-body);
+        font-weight: 400;
+      }
+
+      .subject-table .detail-row.is-all-zero td,
+      .subject-table .detail-row.is-all-zero td:first-child {
+        color: var(--t-weak);
+        background: #fbfcfe;
+      }
+
+      .subject-table .detail-row.is-all-zero .current-period {
+        color: var(--t-weak) !important;
+        background: #f7f9fc !important;
+      }
+
+      .subject-table .detail-row.is-all-zero:hover td {
+        background: var(--hover-bg);
+      }
+
+      .number.is-zero {
+        color: var(--t-weak);
+      }
+
+      .detail-unit-note {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        color: var(--t-weak);
+        font-size: 11px;
+      }
+
+      .detail-unit-note svg {
+        width: 13px;
+        height: 13px;
+        flex-shrink: 0;
+      }
+
+      .methodology-disclosure {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-top: 20px;
+      }
+
+      .methodology-button svg:first-child {
+        transform: none !important;
+      }
+
+      .methodology-panel {
+        width: 100%;
+        margin-top: 8px;
+        padding: 13px 16px;
+        background: #fbfcfe;
+      }
+
+      .methodology-panel ul {
+        display: grid;
+        gap: 4px;
+        padding-left: 18px;
+        color: var(--t-sub);
+        font-size: 12px;
+      }
+
+      .methodology-panel .risk-note {
+        color: #ad514c;
+        font-weight: 500;
+      }
+
+      .visually-hidden {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        clip: rect(0 0 0 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+      }
+
+      .placeholder-head {
+        margin-bottom: 14px;
+      }
+
+      .placeholder-head h1 {
+        color: var(--t-title);
+        font-size: 22px;
+        font-weight: 600;
+      }
+
+      .placeholder-head p {
+        margin-top: 4px;
+        color: var(--t-sub);
+        font-size: 13px;
+      }
+
+      .empty-state {
+        display: grid;
+        min-height: 360px;
+        padding: 36px 20px;
+        text-align: center;
+        place-items: center;
+      }
+
+      .empty-state-content {
+        max-width: 460px;
+      }
+
+      .empty-icon {
+        display: grid;
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 14px;
+        color: var(--blue-hover);
+        background: var(--blue-bg);
+        border: 1px solid var(--blue-border);
+        border-radius: 12px;
+        place-items: center;
+      }
+
+      .empty-icon svg {
+        width: 23px;
+        height: 23px;
+      }
+
+      .empty-state h2 {
+        color: var(--t-module);
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      @container (max-width: 1040px) {
+        .category-grid[data-category-count='7'] {
+          --category-columns: 4;
+        }
+      }
+
+      @container (max-width: 620px) {
+        .category-grid {
+          --category-columns: 2;
+        }
+      }
+
+      @container (max-width: 420px) {
+        .category-grid {
+          --category-columns: 1;
+        }
+      }
+
+      @media (max-width: 1180px) {
+        .overview-grid {
+          grid-template-columns: minmax(0, 1fr) 240px;
+        }
+      }
+
+      @media (max-width: 980px) {
+        .sidebar {
+          box-shadow: var(--shadow-drop);
+          transform: translateX(-105%);
+          transition: transform 0.15s ease;
+        }
+
+        body.menu-open {
+          overflow: hidden;
+        }
+
+        body.menu-open .sidebar {
+          transform: translateX(0);
+        }
+
+        .sidebar-scrim {
+          position: fixed;
+          z-index: 110;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(32, 39, 51, 0.24);
+          border: 0;
+          cursor: pointer;
+        }
+
+        body.menu-open .sidebar-scrim {
+          display: block;
+        }
+
+        .app-main {
+          margin-left: 0;
+        }
+
+        .mobile-menu-button {
+          display: grid;
+          width: 34px;
+          height: 34px;
+          flex: 0 0 auto;
+          align-self: center;
+          color: var(--t-body);
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          cursor: pointer;
+          place-items: center;
+        }
+
+        .mobile-menu-button svg {
+          width: 17px;
+          height: 17px;
+        }
+
+        .tabs-wrap {
+          min-width: 0;
+          gap: 12px;
+        }
+
+        .overview-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .quarter-list {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 760px) {
+        .container {
+          padding-right: 16px;
+          padding-left: 16px;
+        }
+
+        .header-row {
+          min-height: 52px;
+        }
+
+        .tabs-list {
+          gap: 20px;
+        }
+
+        .tab-item {
+          font-size: 12.5px;
+        }
+
+        .header-meta {
+          display: none;
+        }
+
+        .report-head {
+          display: block;
+        }
+
+        .report-head h1,
+        .placeholder-head h1 {
+          font-size: 20px;
+        }
+
+        .kpi-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .section-head {
+          align-items: flex-start;
+        }
+
+        .quarter-list {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .page-content {
+          padding-top: 16px;
+        }
+
+        .kpi-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .kpi-card {
+          min-height: 94px;
+        }
+
+        .section-head {
+          display: block;
+        }
+
+        .section-head .secondary-button {
+          width: 100%;
+          margin-top: 10px;
+        }
+
+        .card-head {
+          display: block;
+        }
+
+        .legend {
+          margin-top: 6px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#mainContent">跳到主要内容</a>
+
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar" aria-label="主导航">
+        <div class="side-brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 18V9"></path>
+              <path d="M10 18V5"></path>
+              <path d="M16 18v-7"></path>
+              <path d="M22 18V3"></path>
+            </svg>
+          </span>
+          <span>数据中心台</span>
+        </div>
+
+        <nav class="side-nav" aria-label="业务导航">
+          <a class="nav-item active" href="./funds-overview.html" aria-current="page">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+            </svg>
+            <span>资金总览</span>
+          </a>
+          <span class="nav-item" aria-disabled="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+              <polyline points="16 7 22 7 22 13"></polyline>
+            </svg>
+            <span>利润总览</span>
+          </span>
+          <a class="nav-item" href="./store-performance-overview.html">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="M2 7l1-4h18l1 4"></path>
+              <path d="M4 7v13a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7"></path>
+              <path d="M9 21v-7a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v7"></path>
+            </svg>
+            <span>经营｜阿里店</span>
+          </a>
+          <span class="nav-item" aria-disabled="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            <span>经营｜供应链</span>
+          </span>
+          <span class="nav-item" aria-disabled="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path
+                d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"
+              ></path>
+              <path d="M17 18h1M12 18h1M7 18h1"></path>
+            </svg>
+            <span>经营｜工厂</span>
+          </span>
+          <span class="nav-item" aria-disabled="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+            <span>经营｜ISV</span>
+          </span>
+          <span class="nav-item" aria-disabled="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+              <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+              <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+              <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+            </svg>
+            <span>经营｜TKFB</span>
+          </span>
+          <span class="nav-item" aria-disabled="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="m12 14 4-4"></path>
+              <path d="M3.34 19a10 10 0 1 1 17.32 0"></path>
+            </svg>
+            <span>指标反馈</span>
+          </span>
+        </nav>
+      </aside>
+
+      <button
+        class="sidebar-scrim"
+        id="sidebarScrim"
+        type="button"
+        aria-label="关闭主导航"
+        tabindex="-1"
+      ></button>
+
+      <div class="app-main">
+        <header class="page-header">
+          <div class="container">
+            <div class="header-row">
+              <div class="tabs-wrap">
+                <button
+                  class="mobile-menu-button"
+                  id="menuButton"
+                  type="button"
+                  aria-label="打开主导航"
+                  aria-expanded="false"
+                  aria-controls="sidebar"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    aria-hidden="true"
+                  >
+                    <path d="M4 7h16M4 12h16M4 17h16"></path>
+                  </svg>
+                </button>
+                <div class="tabs-list" role="tablist" aria-label="资金总览二级页面">
+                  <button
+                    class="tab-item"
+                    id="tab-balance-sheet"
+                    type="button"
+                    role="tab"
+                    aria-controls="panel-balance-sheet"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-view="balance-sheet"
+                  >
+                    资产负债表
+                  </button>
+                  <button
+                    class="tab-item"
+                    id="tab-account-balance"
+                    type="button"
+                    role="tab"
+                    aria-controls="panel-account-balance"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-view="account-balance"
+                  >
+                    账户余额
+                  </button>
+                  <button
+                    class="tab-item"
+                    id="tab-cashflow-supply"
+                    type="button"
+                    role="tab"
+                    aria-controls="panel-cashflow-supply"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-view="cashflow-supply"
+                  >
+                    现金流量表｜供应链
+                  </button>
+                  <button
+                    class="tab-item"
+                    id="tab-cashflow-isv"
+                    type="button"
+                    role="tab"
+                    aria-controls="panel-cashflow-isv"
+                    aria-selected="true"
+                    tabindex="0"
+                    data-view="cashflow-isv"
+                  >
+                    现金流量表｜ISV
+                  </button>
+                  <button
+                    class="tab-item"
+                    id="tab-cashflow-shannan"
+                    type="button"
+                    role="tab"
+                    aria-controls="panel-cashflow-shannan"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-view="cashflow-shannan"
+                  >
+                    现金流量表｜山南
+                  </button>
+                </div>
+              </div>
+              <div class="header-meta" aria-live="polite">
+                <span class="status-chip" id="headerStatus">示例数据</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main class="container page-content" id="mainContent" tabindex="-1">
+          <section
+            class="page-view"
+            id="panel-balance-sheet"
+            role="tabpanel"
+            aria-labelledby="tab-balance-sheet"
+            tabindex="0"
+            hidden
+          >
+            <div class="placeholder-head">
+              <h1>资产负债表</h1>
+            </div>
+            <div class="card empty-state">
+              <div class="empty-state-content">
+                <span class="empty-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M4 4h16v16H4z"></path>
+                    <path d="M8 8h8M8 12h8M8 16h5"></path>
+                  </svg>
+                </span>
+                <h2>未配置</h2>
+              </div>
+            </div>
+          </section>
+
+          <section
+            class="page-view"
+            id="panel-account-balance"
+            role="tabpanel"
+            aria-labelledby="tab-account-balance"
+            tabindex="0"
+            hidden
+          >
+            <div class="placeholder-head">
+              <h1>账户余额</h1>
+            </div>
+            <div class="card empty-state">
+              <div class="empty-state-content">
+                <span class="empty-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M3 6h18v13H3z"></path>
+                    <path d="M3 10h18M16 15h2"></path>
+                  </svg>
+                </span>
+                <h2>未配置</h2>
+              </div>
+            </div>
+          </section>
+
+          <section
+            class="page-view"
+            id="panel-cashflow-supply"
+            role="tabpanel"
+            aria-labelledby="tab-cashflow-supply"
+            tabindex="0"
+            hidden
+          >
+            <div class="report-root" data-report-key="supply"></div>
+          </section>
+
+          <section
+            class="page-view"
+            id="panel-cashflow-isv"
+            role="tabpanel"
+            aria-labelledby="tab-cashflow-isv"
+            tabindex="0"
+          >
+            <div class="report-root" data-report-key="isv"></div>
+          </section>
+
+          <section
+            class="page-view"
+            id="panel-cashflow-shannan"
+            role="tabpanel"
+            aria-labelledby="tab-cashflow-shannan"
+            tabindex="0"
+            hidden
+          >
+            <div class="placeholder-head">
+              <h1>现金流量表｜山南</h1>
+            </div>
+            <div class="card empty-state">
+              <div class="empty-state-content">
+                <span class="empty-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M4 19V5M4 19h16"></path>
+                    <path d="m7 15 4-4 3 2 5-6"></path>
+                  </svg>
+                </span>
+                <h2>未配置</h2>
+              </div>
+            </div>
+          </section>
+
+          <noscript>
+            <div class="card methodology-panel">
+              <strong>需要启用 JavaScript</strong>
+              <p>请启用 JavaScript 后查看页面。</p>
+            </div>
+          </noscript>
+        </main>
+      </div>
+    </div>
+
+    <!-- 两个独立页面共用同目录的 ECharts。 -->
+    <script src="./echarts.min.js"></script>
+    <script>
+      (() => {
+        'use strict';
+
+        const MONTHS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'];
+
+        // SAMPLE_DATA：全部值均转录自用户提供的资金简报图片，仅用于本 HTML 原型。
+        const REPORTS = {
+          supply: {
+            viewId: 'cashflow-supply',
+            title: '现金流量表｜供应链',
+            summary: {
+              income: [159.8, 107.3, 103.2, 149.6, 73.7, 124.5, 175.7, 81.0, 0.0],
+              expense: [-154.5, -126.9, -90.0, -112.3, -99.2, -118.4, -167.0, -107.1, 0.0],
+              net: [5.4, -19.6, 13.2, 37.3, -25.5, 6.1, 8.7, -26.1, 0.0],
+              incomeTotal: 975.0,
+              expenseTotal: -975.4,
+              netTotal: -0.5,
+              quarters: [
+                { name: '第一季度', months: '1–3月', value: -1.0 },
+                { name: '第二季度', months: '4–6月', value: 18.0 },
+                { name: '第三季度', months: '7–9月', value: -17.4 },
+              ],
+            },
+            incomeGroups: [
+              {
+                name: '供应链类收入',
+                values: [159.8, 107.1, 103.2, 149.3, 73.6, 124.3, 175.5, 80.7, 0.0],
+                total: 973.5,
+                rows: [
+                  {
+                    name: '供应链-充值',
+                    values: [
+                      1572887, 1039436, 982584, 1421531, 699662, 1176513, 1734774, 770770, 0,
+                    ],
+                    total: 939.8,
+                  },
+                  {
+                    name: '供应链-线下订单',
+                    values: [12031, 20309, 39696, 58864, 32657, 29688, 12195, 31181, 0],
+                    total: 23.7,
+                  },
+                  {
+                    name: '供应链-上游采购退返',
+                    values: [0, 0, 0, 2592, 40, 10943, 5231, 0, 0],
+                    total: 1.9,
+                  },
+                  {
+                    name: '供应链-票点收入',
+                    values: [12720, 10756, 9519, 10407, 3438, 25767, 3172, 5448, 0],
+                    total: 8.1,
+                  },
+                ],
+              },
+              {
+                name: '阿米巴类收入',
+                values: [0.1, 0.2, 0.1, 0.3, 0.2, 0.2, 0.2, 0.3, 0.0],
+                total: 1.5,
+                rows: [
+                  {
+                    name: '阿米巴-承包口租金水电',
+                    values: [820, 2478, 628, 2692, 1613, 2313, 1739, 2557, 0],
+                    total: 1.5,
+                  },
+                ],
+              },
+            ],
+            expenseGroups: [
+              {
+                name: '供应链类支出',
+                values: [-130.2, -100.9, -75.6, -87.4, -77.7, -103.2, -145.4, -88.8, 0.0],
+                total: -809.3,
+                rows: [
+                  {
+                    name: '账单-外协厂',
+                    values: [-76490, -132966, 0, -45174, -67420, -35895, -257795, -98344, 0],
+                    total: -71.4,
+                  },
+                  {
+                    name: '胚衫采购成本',
+                    values: [
+                      -926319, -478809, -480247, -553249, -292061, -501950, -681644, -445901, 0,
+                    ],
+                    total: -436.0,
+                  },
+                  {
+                    name: '物料-归印花厂',
+                    values: [-21998, -11771, -18183, -17572, -23236, -10334, -15710, -9059, 0],
+                    total: -12.8,
+                  },
+                  {
+                    name: '物料-归承包口',
+                    values: [0, -42172, 0, 0, 0, 0, -195289, 0, 0],
+                    total: -23.7,
+                  },
+                  {
+                    name: '账单-国际运费',
+                    values: [
+                      -143127, -144497, -151119, -106604, -190751, -318293, -284798, -154149, 0,
+                    ],
+                    total: -149.3,
+                  },
+                  {
+                    name: '账单-国内运费',
+                    values: [-9478, -12011, -8461, -15113, -11492, -14142, -16288, -9299, 0],
+                    total: -9.6,
+                  },
+                  {
+                    name: '账单-承包口结算',
+                    values: [
+                      -124276, -187210, -96859, -130588, -192272, -151570, -2118, -169674, 0,
+                    ],
+                    total: -105.5,
+                  },
+                  {
+                    name: '供应链充值款退回',
+                    values: [0, 0, -1600, -6100, 0, 0, 0, -2000, 0],
+                    total: -1.0,
+                  },
+                ],
+              },
+              {
+                name: '市场费用类支出',
+                values: [0.0, -0.2, -0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                total: -0.6,
+                rows: [
+                  {
+                    name: '差旅/招待费',
+                    values: [0, -1668, -3862, 0, 0, 0, 0, 0, 0],
+                    total: -0.6,
+                  },
+                  {
+                    name: '市场活动/营销费',
+                    values: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    total: 0.0,
+                  },
+                ],
+              },
+              {
+                name: '固定成本类支出',
+                values: [-7.1, -6.2, -1.1, -6.8, -6.1, -1.6, -6.4, -6.3, 0.0],
+                total: -41.6,
+                rows: [
+                  {
+                    name: '办公费',
+                    values: [-4674, -1588, -4817, -1120, -1992, -2523, -3679, -4129, 0],
+                    total: -2.5,
+                  },
+                  {
+                    name: '场地租金',
+                    values: [-43605, -48735, 0, -43605, -48735, 0, -43605, -48735, 0],
+                    total: -27.7,
+                  },
+                  {
+                    name: '水电物业',
+                    values: [-10272, -11916, -6192, -9370, -10265, -13069, -14735, -10033, 0],
+                    total: -8.6,
+                  },
+                  {
+                    name: '财务成本',
+                    values: [-12247, 0, 0, -13695, 0, -672, -1500, -600, 0],
+                    total: -2.9,
+                  },
+                ],
+              },
+              {
+                name: '人力类支出',
+                values: [-13.4, -16.5, -11.5, -17.5, -13.7, -13.4, -13.1, -11.7, 0.0],
+                total: -110.9,
+                rows: [
+                  {
+                    name: '实发薪酬（底/绩/提）',
+                    values: [
+                      -116751, -129787, -102515, -161599, -125253, -120326, -118327, -108316, 0,
+                    ],
+                    total: -98.3,
+                  },
+                  {
+                    name: '人员五险',
+                    values: [-16850, -18401, -12643, -10837, -12096, -11540, -12204, -9149, 0],
+                    total: -10.4,
+                  },
+                  {
+                    name: '人员奖金',
+                    values: [0, -10000, 0, -3000, 0, 0, 0, 0, 0],
+                    total: -1.3,
+                  },
+                  {
+                    name: '外包服务',
+                    values: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    total: 0.0,
+                  },
+                  {
+                    name: '阿米巴分摊费用',
+                    values: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    total: 0.0,
+                  },
+                  {
+                    name: '福利/补贴费',
+                    values: [0, -6838, 0, 0, 0, -2195, 0, 0, 0],
+                    total: -0.9,
+                  },
+                  {
+                    name: '培训费',
+                    values: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    total: 0.0,
+                  },
+                ],
+              },
+              {
+                name: '基建类支出',
+                values: [-3.9, -3.1, -1.4, -0.5, -1.7, -0.1, -2.2, -0.1, 0.0],
+                total: -13.0,
+                rows: [
+                  {
+                    name: '设备购买/租用',
+                    values: [-38555, -26500, -7624, 0, -16500, -1360, -16500, -1200, 0],
+                    total: -10.8,
+                  },
+                  {
+                    name: '装修费用',
+                    values: [0, -4590, -6000, -5252, -400, 0, -5999, 0, 0],
+                    total: -2.2,
+                  },
+                ],
+              },
+            ],
+          },
+          isv: {
+            viewId: 'cashflow-isv',
+            title: '现金流量表｜ISV',
+            summary: {
+              income: [90.9, 11.5, 28.0, 17.9, 64.2, 10.7, 56.8, 0.0, 0.0],
+              expense: [-16.0, -25.7, -16.2, -16.3, -13.2, -26.6, -18.1, -9.7, 0.0],
+              net: [74.9, -14.2, 11.8, 1.7, 51.0, -15.9, 38.7, -9.7, 0.0],
+              incomeTotal: 280.1,
+              expenseTotal: -141.8,
+              netTotal: 138.3,
+              quarters: [
+                { name: '第一季度', months: '1–3月', value: 72.5 },
+                { name: '第二季度', months: '4–6月', value: 36.8 },
+                { name: '第三季度', months: '7–9月', value: 29.0 },
+              ],
+            },
+            incomeGroups: [
+              {
+                name: '阿里类收入',
+                values: [90.9, 11.5, 28.0, 17.9, 64.2, 10.7, 56.8, 0.0, 0.0],
+                total: 280.1,
+                rows: [
+                  {
+                    name: '阿里相关（服务类收入）',
+                    values: [0, 1500, 0, 0, 2500, 0, 0, 0, 0],
+                    total: 0.4,
+                  },
+                  {
+                    name: '阿里课酬（讲课分享）',
+                    values: [0, 0, 3000, 0, 0, 4000, 0, 0, 0],
+                    total: 0.7,
+                  },
+                  {
+                    name: '阿里渠道佣金（致极）',
+                    values: [47825, 18613, 23076, 0, 19476, 11035, 27770, 0, 0],
+                    total: 14.8,
+                  },
+                  {
+                    name: '阿里渠道佣金（福州ISV）',
+                    values: [340862, 95062, 98429, 179416, 73797, 43537, 307950, 0, 0],
+                    total: 113.9,
+                  },
+                  {
+                    name: '阿里渠道佣金（香港ISV）',
+                    values: [520811, 0, 155658, 0, 545969, 48826, 232095, 0, 0],
+                    total: 150.3,
+                  },
+                ],
+              },
+            ],
+            expenseGroups: [
+              {
+                name: '市场费用类支出',
+                values: [-3.5, -13.5, -3.9, -3.0, -3.1, -15.1, -7.6, -0.6, 0.0],
+                total: -50.3,
+                rows: [
+                  {
+                    name: '差旅/招待费',
+                    values: [0, -562, -3668, -3538, -1604, -361, -3150, 0, 0],
+                    total: -1.3,
+                  },
+                  {
+                    name: '市场活动/营销费',
+                    values: [0, -800, -9688, -4800, -15269, -4200, -2409, -6228, 0],
+                    total: -4.3,
+                  },
+                  {
+                    name: '佣金结算（对外）',
+                    values: [-35364, -53429, -17900, -8950, 0, -88444, -70464, 0, 0],
+                    total: -27.5,
+                  },
+                  {
+                    name: '佣金结算（内部）',
+                    values: [0, -80350, -7612, -12620, -14094, -57936, 0, 0, 0],
+                    total: -17.3,
+                  },
+                ],
+              },
+              {
+                name: '固定成本类支出',
+                values: [-2.5, -0.8, -0.9, -3.1, -0.8, -0.9, 0.0, -0.4, 0.0],
+                total: -9.5,
+                rows: [
+                  {
+                    name: '办公费',
+                    values: [-415, 0, -920, -7216, -400, -825, -194, 0, 0],
+                    total: -1.0,
+                  },
+                  {
+                    name: '场地租金',
+                    values: [-6625, -6625, -6625, -6625, -6625, -6625, 0, 0, 0],
+                    total: -4.0,
+                  },
+                  {
+                    name: '水电物业',
+                    values: [-1124, -1535, -1348, -1132, -1106, -1169, 0, -278, 0],
+                    total: -0.8,
+                  },
+                  {
+                    name: '财务成本',
+                    values: [-16894, -150, -17, -16514, 0, -15, 0, -3816, 0],
+                    total: -3.7,
+                  },
+                ],
+              },
+              {
+                name: '人力类支出',
+                values: [-10.0, -11.4, -11.5, -10.1, -9.3, -10.6, -10.5, -8.6, 0.0],
+                total: -82.0,
+                rows: [
+                  {
+                    name: '实发薪酬（底/绩/提）',
+                    values: [-85879, -100101, -102640, -88706, -81727, -96748, -97300, -76712, 0],
+                    total: -73.0,
+                  },
+                  {
+                    name: '人员五险',
+                    values: [-13808, -13677, -11978, -12130, -10636, -9608, -7557, -7559, 0],
+                    total: -8.7,
+                  },
+                  {
+                    name: '人员奖金',
+                    values: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    total: 0.0,
+                  },
+                  {
+                    name: '外包服务',
+                    values: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    total: 0.0,
+                  },
+                  {
+                    name: '阿米巴分摊费用',
+                    values: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    total: 0.0,
+                  },
+                  {
+                    name: '福利/补贴费',
+                    values: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    total: 0.0,
+                  },
+                  {
+                    name: '培训费',
+                    values: [0, 0, 0, -600, -500, 0, 0, -1980, 0],
+                    total: -0.3,
+                  },
+                ],
+              },
+              {
+                name: '基建类支出',
+                values: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                total: 0.0,
+                rows: [
+                  {
+                    name: '设备购买/租用',
+                    values: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    total: 0.0,
+                  },
+                  {
+                    name: '装修费用',
+                    values: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    total: 0.0,
+                  },
+                ],
+              },
+            ],
+          },
+        };
+
+        const VIEW_META = {
+          'balance-sheet': { title: '资产负债表', status: '未配置' },
+          'account-balance': { title: '账户余额', status: '未配置' },
+          'cashflow-supply': { title: '现金流量表｜供应链', status: '示例数据' },
+          'cashflow-isv': { title: '现金流量表｜ISV', status: '示例数据' },
+          'cashflow-shannan': { title: '现金流量表｜山南', status: '未配置' },
+        };
+
+        const CURRENT_MONTH_INDEX = 7;
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const chartInstances = new Map();
+
+        const escapeHtml = (value) =>
+          String(value).replace(/[&<>'"]/g, (character) => {
+            const entities = {
+              '&': '&amp;',
+              '<': '&lt;',
+              '>': '&gt;',
+              "'": '&#39;',
+              '"': '&quot;',
+            };
+            return entities[character];
+          });
+
+        const classForValue = (value) => {
+          if (value < 0) return 'is-negative';
+          if (value > 0) return 'is-positive';
+          return 'is-zero';
+        };
+
+        const formatWan = (value, digits = 1) => `${Number(value).toFixed(digits)}万`;
+
+        const formatDetailWan = (rawValue) => {
+          if (rawValue === 0) return '0';
+          return (rawValue / 10000).toFixed(2);
+        };
+
+        const renderKpis = (report) => {
+          const currentNet = report.summary.net[7];
+          const cards = [
+            { label: '累计收入', value: report.summary.incomeTotal },
+            { label: '累计支出', value: report.summary.expenseTotal },
+            { label: '累计结余', value: report.summary.netTotal },
+            { label: '8月结余', value: currentNet },
+          ];
+
+          return cards
+            .map(
+              (card) => `
+                <article class="card kpi-card">
+                  <div class="kpi-label">${escapeHtml(card.label)}</div>
+                  <div class="kpi-value ${classForValue(card.value)}">${formatWan(card.value)}</div>
+                </article>`,
+            )
+            .join('');
+        };
+
+        const renderNetChart = (reportKey, report) => {
+          const chartLabel = MONTHS.map(
+            (month, index) => `${month}${formatWan(report.summary.net[index])}`,
+          ).join('，');
+          return `
+            <article class="card chart-card">
+              <div class="card-head">
+                <div>
+                  <h3>月度结余</h3>
+                </div>
+                <div class="legend" aria-label="图例">
+                  <span class="legend-item"><span class="legend-dot positive"></span>正结余</span>
+                  <span class="legend-item"><span class="legend-dot negative"></span>负结余</span>
+                </div>
+              </div>
+              <div
+                class="net-chart"
+                id="${reportKey}-net-chart"
+                role="img"
+                data-echarts-version="5.5.1"
+                aria-label="月度结余柱状图，${escapeHtml(chartLabel)}。"
+              ></div>
+              <div class="chart-fallback" id="${reportKey}-chart-fallback" hidden>
+                图表资源暂时不可用，可在下方月度收支表查看数值。
+              </div>
+            </article>`;
+        };
+
+        const renderQuarterCard = (report) => {
+          const quarters = report.summary.quarters
+            .map(
+              (quarter) => `
+                <div class="quarter-row">
+                  <div>
+                    <span class="quarter-name">${escapeHtml(quarter.name)}</span>
+                    <span class="quarter-months">${escapeHtml(quarter.months)}</span>
+                  </div>
+                  <span class="quarter-value ${classForValue(quarter.value)}">${formatWan(quarter.value)}</span>
+                </div>`,
+            )
+            .join('');
+
+          return `
+            <article class="card quarter-card">
+              <div class="card-head">
+                <div>
+                  <h3>季度结余</h3>
+                </div>
+              </div>
+              <div class="quarter-list">${quarters}</div>
+            </article>`;
+        };
+
+        const renderCategoryCards = (report) =>
+          [...report.incomeGroups, ...report.expenseGroups]
+            .map(
+              (group) => `
+                <article class="card category-card">
+                  <span class="category-name">${escapeHtml(group.name)}</span>
+                  <span class="category-value ${classForValue(group.total)}">${formatWan(group.total)}</span>
+                </article>`,
+            )
+            .join('');
+
+        const renderMonthlyTable = (report) => {
+          const header = MONTHS.map(
+            (month, index) =>
+              `<th scope="col" class="${index === CURRENT_MONTH_INDEX ? 'current-period' : ''}">${escapeHtml(month)}</th>`,
+          ).join('');
+
+          const renderRow = (label, values, total, extraClass = '') => {
+            const cells = values
+              .map(
+                (value, index) =>
+                  `<td class="number ${classForValue(value)} ${index === CURRENT_MONTH_INDEX ? 'current-period' : ''}">${formatWan(value)}</td>`,
+              )
+              .join('');
+            return `<tr class="${extraClass}"><td>${escapeHtml(label)}</td>${cells}<td class="number ${classForValue(total)}">${formatWan(total)}</td></tr>`;
+          };
+
+          return `
+            <article class="card table-card monthly-table-card">
+              <div class="table-card-head">
+                <div>
+                  <h3>月度收支统计</h3>
+                  <p>单位：万元</p>
+                </div>
+              </div>
+              <div class="table-scroll" tabindex="0" aria-label="月度收支统计，可横向滚动">
+                <table class="monthly-table">
+                  <thead><tr><th scope="col">项目</th>${header}<th scope="col">总计</th></tr></thead>
+                  <tbody>
+                    ${renderRow('收入科目总计', report.summary.income, report.summary.incomeTotal)}
+                    ${renderRow('支出科目总计', report.summary.expense, report.summary.expenseTotal)}
+                    ${renderRow('结余', report.summary.net, report.summary.netTotal, 'net-row')}
+                  </tbody>
+                </table>
+              </div>
+            </article>`;
+        };
+
+        const renderSubjectTable = (title, groups, reportKey) => {
+          const header = MONTHS.map(
+            (month, index) =>
+              `<th scope="col" class="${index === 7 ? 'current-period' : ''}">${escapeHtml(month)}</th>`,
+          ).join('');
+
+          const body = groups
+            .map((group) => {
+              const groupCells = group.values
+                .map(
+                  (value, index) =>
+                    `<td class="number ${classForValue(value)} ${index === 7 ? 'current-period' : ''}">${formatWan(value)}</td>`,
+                )
+                .join('');
+
+              const detailRows = group.rows
+                .map((row) => {
+                  const isAllZero = row.values.every((value) => value === 0) && row.total === 0;
+                  const cells = row.values
+                    .map(
+                      (value, index) => `
+                        <td
+                          class="number ${classForValue(value)} ${index === 7 ? 'current-period' : ''}"
+                        >${formatDetailWan(value)}</td>`,
+                    )
+                    .join('');
+                  return `
+                    <tr class="detail-row${isAllZero ? ' is-all-zero' : ''}" data-detail-for="${escapeHtml(reportKey)}">
+                      <td title="${escapeHtml(row.name)}">${escapeHtml(row.name)}</td>
+                      ${cells}
+                      <td class="number ${classForValue(row.total)}">${formatWan(row.total)}</td>
+                    </tr>`;
+                })
+                .join('');
+
+              return `
+                <tr class="group-row">
+                  <td title="${escapeHtml(group.name)}">${escapeHtml(group.name)}</td>
+                  ${groupCells}
+                  <td class="number ${classForValue(group.total)}">${formatWan(group.total)}</td>
+                </tr>
+                ${detailRows}`;
+            })
+            .join('');
+
+          return `
+            <article class="card table-card">
+              <div class="table-card-head">
+                <div>
+                  <h3>${escapeHtml(title)}</h3>
+                </div>
+                <span class="detail-unit-note">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path>
+                  </svg>
+                  单位：万元
+                </span>
+              </div>
+              <div class="table-scroll" tabindex="0" aria-label="${escapeHtml(title)}，可横向滚动">
+                <table class="subject-table">
+                  <thead><tr><th scope="col">科目</th>${header}<th scope="col">小计</th></tr></thead>
+                  <tbody>${body}</tbody>
+                </table>
+              </div>
+            </article>`;
+        };
+
+        const renderMethodology = (reportKey) => `
+          <section class="methodology-disclosure" aria-label="口径说明">
+            <button
+              class="secondary-button methodology-button"
+              type="button"
+              data-action="toggle-methodology"
+              aria-expanded="false"
+              aria-controls="${reportKey}-methodology-panel"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path>
+              </svg>
+              <span>口径说明</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="m7 10 5 5 5-5"></path>
+              </svg>
+            </button>
+            <div class="card methodology-panel" id="${reportKey}-methodology-panel" hidden>
+              <ul>
+                <li>仅包含已发生的现金收支。</li>
+                <li class="risk-note">不代表项目盈亏，未包含应付、应收等现金未发生项。</li>
+              </ul>
+            </div>
+          </section>`;
+
+        const renderReport = (reportKey, target) => {
+          const report = REPORTS[reportKey];
+          const categoryCount = report.incomeGroups.length + report.expenseGroups.length;
+          target.innerHTML = `
+            <section class="section-block" aria-labelledby="${reportKey}-overview-title">
+              <div class="section-head">
+                <div>
+                  <h2 id="${reportKey}-overview-title">一、资金概览</h2>
+                  <p>累计及当月现金收支情况</p>
+                </div>
+              </div>
+              <div class="kpi-grid">${renderKpis(report)}</div>
+            </section>
+
+            <section class="section-block" aria-labelledby="${reportKey}-trend-title">
+              <div class="section-head">
+                <div>
+                  <h2 id="${reportKey}-trend-title">二、现金流趋势</h2>
+                  <p>月度结余与季度结余</p>
+                </div>
+              </div>
+              <div class="overview-grid">
+                ${renderNetChart(reportKey, report)}
+                ${renderQuarterCard(report)}
+              </div>
+            </section>
+
+            <section class="section-block" aria-labelledby="${reportKey}-category-title">
+              <div class="section-head">
+                <div>
+                  <h2 id="${reportKey}-category-title">三、收支构成</h2>
+                  <p>各类收入、支出累计情况</p>
+                </div>
+              </div>
+              <div
+                class="category-grid"
+                data-category-count="${categoryCount}"
+                style="--category-total: ${categoryCount}"
+              >${renderCategoryCards(report)}</div>
+            </section>
+
+            <section class="section-block" aria-labelledby="${reportKey}-monthly-title">
+              <div class="section-head">
+                <div>
+                  <h2 id="${reportKey}-monthly-title">四、月度收支</h2>
+                  <p>1–9月收入、支出与结余</p>
+                </div>
+              </div>
+              ${renderMonthlyTable(report)}
+            </section>
+
+            <section class="section-block" aria-labelledby="${reportKey}-detail-title">
+              <div class="section-head">
+                <div>
+                  <h2 id="${reportKey}-detail-title">五、科目明细</h2>
+                  <p>按月查看各科目发生额</p>
+                </div>
+                <button
+                  class="secondary-button"
+                  type="button"
+                  data-action="toggle-details"
+                  data-report-key="${reportKey}"
+                  aria-expanded="true"
+                >
+                  <span>收起科目明细</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path d="m7 10 5 5 5-5"></path>
+                  </svg>
+                </button>
+              </div>
+              <div style="display: grid; gap: 14px">
+                ${renderSubjectTable('收入科目', report.incomeGroups, reportKey)}
+                ${renderSubjectTable('支出科目', report.expenseGroups, reportKey)}
+              </div>
+            </section>
+
+            ${renderMethodology(reportKey)}`;
+        };
+
+        const buildNetChartOption = (reportKey) => {
+          const report = REPORTS[reportKey];
+
+          return {
+            animation: !prefersReducedMotion,
+            animationDuration: 500,
+            animationDurationUpdate: 200,
+            animationEasing: 'cubicOut',
+            textStyle: {
+              color: '#465164',
+              fontFamily:
+                'Inter, "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+            },
+            grid: { top: 28, right: 12, bottom: 26, left: 12, containLabel: true },
+            tooltip: {
+              trigger: 'axis',
+              triggerOn: 'mousemove',
+              alwaysShowContent: false,
+              hideDelay: 60,
+              confine: true,
+              backgroundColor: '#ffffff',
+              borderColor: '#e5eaf0',
+              borderWidth: 1,
+              padding: [9, 11],
+              textStyle: { color: '#465164', fontSize: 12 },
+              extraCssText: 'box-shadow:0 4px 16px rgba(20,35,60,.08);border-radius:7px;',
+              axisPointer: {
+                type: 'shadow',
+                shadowStyle: { color: 'rgba(91,145,217,.08)' },
+              },
+              formatter: (items) => {
+                const item = Array.isArray(items) ? items[0] : items;
+                const value = Number(item.value);
+                const color = value > 0 ? '#8fbb58' : value < 0 ? '#d96b66' : '#9ba5b4';
+                return `<div style="min-width:112px"><div style="margin-bottom:5px;color:#303a4a;font-weight:600">${escapeHtml(item.axisValue)}</div><div style="display:flex;gap:14px;align-items:center;justify-content:space-between"><span style="color:#7c8799">结余</span><strong style="color:${color};font-variant-numeric:tabular-nums">${formatWan(value)}</strong></div></div>`;
+              },
+            },
+            xAxis: {
+              type: 'category',
+              data: MONTHS,
+              axisTick: { show: false },
+              axisLine: { lineStyle: { color: '#e5eaf0' } },
+              axisLabel: {
+                interval: 0,
+                margin: 11,
+                formatter: (value, index) =>
+                  `{${index === CURRENT_MONTH_INDEX ? 'current' : 'normal'}|${value}}`,
+                rich: {
+                  current: {
+                    color: '#4c83c8',
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    backgroundColor: '#eef5fc',
+                    borderRadius: 4,
+                    padding: [3, 5],
+                  },
+                  normal: { color: '#7c8799', fontSize: 11.5 },
+                },
+              },
+            },
+            yAxis: {
+              type: 'value',
+              splitNumber: 4,
+              axisTick: { show: false },
+              axisLine: { show: false },
+              axisLabel: {
+                color: '#9ba5b4',
+                fontSize: 10.5,
+                formatter: (value) => `${value}万`,
+              },
+              splitLine: { lineStyle: { color: '#eef1f5', type: 'dashed' } },
+            },
+            series: [
+              {
+                name: '结余',
+                type: 'bar',
+                barMaxWidth: 28,
+                data: report.summary.net.map((value, index) => {
+                  const current = index === CURRENT_MONTH_INDEX;
+                  const color = value > 0 ? '#8fbb58' : value < 0 ? '#d96b66' : '#9ba5b4';
+                  return {
+                    value,
+                    itemStyle: {
+                      color,
+                      borderColor: current ? '#d9e7f5' : 'transparent',
+                      borderWidth: current ? 1 : 0,
+                      borderRadius: value >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3],
+                    },
+                    label: {
+                      show: true,
+                      position: value >= 0 ? 'top' : 'bottom',
+                      distance: 5,
+                      color,
+                      fontSize: 10.5,
+                      formatter: formatWan(value),
+                    },
+                  };
+                }),
+                emphasis: {
+                  focus: 'none',
+                  itemStyle: { opacity: 1, borderColor: '#5b91d9', borderWidth: 2 },
+                },
+              },
+            ],
+          };
+        };
+
+        const ensureChart = (reportKey) => {
+          const chartElement = document.getElementById(`${reportKey}-net-chart`);
+          const fallback = document.getElementById(`${reportKey}-chart-fallback`);
+          if (!chartElement || !REPORTS[reportKey]) return;
+
+          if (!window.echarts) {
+            chartElement.hidden = true;
+            if (fallback) fallback.hidden = false;
+            return;
+          }
+
+          chartElement.hidden = false;
+          if (fallback) fallback.hidden = true;
+
+          let chart = chartInstances.get(reportKey);
+          if (!chart) {
+            chart = window.echarts.init(chartElement, null, { renderer: 'canvas' });
+            chartInstances.set(reportKey, chart);
+          }
+
+          chart.setOption(buildNetChartOption(reportKey), { notMerge: true, lazyUpdate: false });
+          requestAnimationFrame(() => chart.resize());
+        };
+
+        const ensureChartForView = (viewId) => {
+          const match = Object.entries(REPORTS).find(([, report]) => report.viewId === viewId);
+          if (match) ensureChart(match[0]);
+        };
+
+        document.querySelectorAll('.report-root').forEach((target) => {
+          renderReport(target.dataset.reportKey, target);
+        });
+
+        const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+        const panels = Array.from(document.querySelectorAll('[role="tabpanel"]'));
+        const headerStatus = document.getElementById('headerStatus');
+        const defaultView = 'cashflow-isv';
+
+        const activateView = (viewId, options = {}) => {
+          const safeView = VIEW_META[viewId] ? viewId : defaultView;
+          const { focusTab = false, updateHash = false } = options;
+
+          tabs.forEach((tab) => {
+            const active = tab.dataset.view === safeView;
+            tab.setAttribute('aria-selected', String(active));
+            tab.tabIndex = active ? 0 : -1;
+            if (active && focusTab) tab.focus();
+          });
+
+          panels.forEach((panel) => {
+            panel.hidden = panel.id !== `panel-${safeView}`;
+          });
+
+          const meta = VIEW_META[safeView];
+          headerStatus.textContent = meta.status;
+          document.title = `${meta.title} · 资金总览`;
+          requestAnimationFrame(() => ensureChartForView(safeView));
+
+          if (updateHash && window.location.hash !== `#${safeView}`) {
+            window.location.hash = safeView;
+          }
+        };
+
+        tabs.forEach((tab, index) => {
+          tab.addEventListener('click', () => activateView(tab.dataset.view, { updateHash: true }));
+          tab.addEventListener('keydown', (event) => {
+            const keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+            if (!keys.includes(event.key)) return;
+            event.preventDefault();
+
+            let nextIndex = index;
+            if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+            if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+            if (event.key === 'Home') nextIndex = 0;
+            if (event.key === 'End') nextIndex = tabs.length - 1;
+            activateView(tabs[nextIndex].dataset.view, { focusTab: true, updateHash: true });
+          });
+        });
+
+        window.addEventListener('hashchange', () => {
+          activateView(window.location.hash.slice(1) || defaultView);
+        });
+
+        document.addEventListener('click', (event) => {
+          const button = event.target.closest('[data-action]');
+          if (!button) return;
+
+          const action = button.dataset.action;
+          if (action === 'toggle-details') {
+            const reportKey = button.dataset.reportKey;
+            const expanded = button.getAttribute('aria-expanded') === 'true';
+            button.setAttribute('aria-expanded', String(!expanded));
+            button.querySelector('span').textContent = expanded ? '展开科目明细' : '收起科目明细';
+            document.querySelectorAll(`[data-detail-for="${reportKey}"]`).forEach((row) => {
+              row.hidden = expanded;
+            });
+            return;
+          }
+
+          if (action === 'toggle-methodology') {
+            const panel = document.getElementById(button.getAttribute('aria-controls'));
+            if (!panel) return;
+            const expanded = button.getAttribute('aria-expanded') === 'true';
+            button.setAttribute('aria-expanded', String(!expanded));
+            panel.hidden = expanded;
+          }
+        });
+
+        const menuButton = document.getElementById('menuButton');
+        const sidebarScrim = document.getElementById('sidebarScrim');
+
+        const setMenuOpen = (open) => {
+          const mobile = window.innerWidth <= 980;
+          const shouldOpen = mobile && open;
+          document.body.classList.toggle('menu-open', shouldOpen);
+          menuButton.setAttribute('aria-expanded', String(shouldOpen));
+          sidebarScrim.tabIndex = shouldOpen ? 0 : -1;
+        };
+
+        menuButton.addEventListener('click', () => {
+          setMenuOpen(!document.body.classList.contains('menu-open'));
+        });
+        sidebarScrim.addEventListener('click', () => setMenuOpen(false));
+        window.addEventListener('resize', () => {
+          if (window.innerWidth > 980) setMenuOpen(false);
+          chartInstances.forEach((chart, reportKey) => {
+            const chartElement = document.getElementById(`${reportKey}-net-chart`);
+            if (chartElement && chartElement.offsetParent !== null) chart.resize();
+          });
+        });
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') setMenuOpen(false);
+        });
+
+        const initialView = window.location.hash.slice(1);
+        activateView(VIEW_META[initialView] ? initialView : defaultView);
+        if (!VIEW_META[initialView]) {
+          window.history.replaceState(null, '', `#${defaultView}`);
+        }
+      })();
+    </script>
+  </body>
+</html>
